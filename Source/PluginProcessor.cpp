@@ -133,7 +133,7 @@ void DelayAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, [[maybe
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    float gainInDecibels = apvts.getRawParameterValue("gain")->load();
+    float gainInDecibels = apvts.getRawParameterValue(gainParamID.getParamID())->load();
     float gain = juce::Decibels::decibelsToGain(gainInDecibels);
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
@@ -174,7 +174,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createP
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        juce::ParameterID{ "gain", 1 },
+        gainParamID,
         "Output Gain",
         juce::NormalisableRange<float>{ -12.0f, 12.0f },
         0.0f));
