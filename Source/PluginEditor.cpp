@@ -30,7 +30,7 @@ void DelayAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (40.0f);
-    g.drawFittedText ("My First Plug-in!", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText ("My First Plug-in!!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void DelayAudioProcessorEditor::resized()

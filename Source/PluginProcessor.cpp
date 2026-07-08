@@ -12,14 +12,14 @@
 //==============================================================================
 DelayAudioProcessor::DelayAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    )
 #endif
 {
 }
@@ -36,29 +36,29 @@ const juce::String DelayAudioProcessor::getName() const
 
 bool DelayAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool DelayAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool DelayAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 double DelayAudioProcessor::getTailLengthSeconds() const
@@ -69,7 +69,7 @@ double DelayAudioProcessor::getTailLengthSeconds() const
 int DelayAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int DelayAudioProcessor::getCurrentProgram()
@@ -77,21 +77,21 @@ int DelayAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void DelayAudioProcessor::setCurrentProgram (int index)
+void DelayAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String DelayAudioProcessor::getProgramName (int index)
+const juce::String DelayAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void DelayAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void DelayAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void DelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void DelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -104,16 +104,16 @@ void DelayAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool DelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool DelayAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
     return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
 }
 #endif
 
-void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, [[maybe_unused]]juce::MidiBuffer& midiMessages)
+void DelayAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, [[maybe_unused]] juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     // In case we have more outputs than inputs, this code clears any output
@@ -133,16 +133,16 @@ void DelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, [[mayb
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    float gainInDecibels = -6.0f;
-	float gain = juce::Decibels::decibelsToGain(gainInDecibels);
-	for (int channel = 0; channel < totalNumInputChannels; ++channel)
-	{
-		float* channelData = buffer.getWritePointer(channel);
-		for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-		{
+    float gainInDecibels = apvts.getRawParameterValue("gain")->load();
+    float gain = juce::Decibels::decibelsToGain(gainInDecibels);
+    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    {
+        float* channelData = buffer.getWritePointer(channel);
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
             channelData[sample] *= gain;
-		}
-	}
+        }
+    }
 }
 
 //==============================================================================
@@ -153,18 +153,18 @@ bool DelayAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* DelayAudioProcessor::createEditor()
 {
-    return new DelayAudioProcessorEditor (*this);
+    return new DelayAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void DelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void DelayAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void DelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void DelayAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
