@@ -153,6 +153,7 @@ juce::AudioProcessorEditor* DelayAudioProcessor::createEditor()
 //==============================================================================
 void DelayAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
+    //DBG(apvts.copyState().toXmlString());
     copyXmlToBinary(*apvts.copyState().createXml(), destData);
 }
 
