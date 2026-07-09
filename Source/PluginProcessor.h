@@ -9,8 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-
-const juce::ParameterID gainParamID{ "gain", 1 };
+#include "Parameters.h"
 
 //==============================================================================
 /**
@@ -56,9 +55,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() };
-    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    juce::AudioParameterFloat* gainParam;
+    juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", Parameters::createParameterLayout() };
+    Parameters params;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DelayAudioProcessor)
 };

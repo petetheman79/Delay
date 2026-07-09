@@ -12,10 +12,9 @@
 //==============================================================================
 DelayAudioProcessor::DelayAudioProcessor() :
     AudioProcessor(BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true)
-        .withOutput("Output", juce::AudioChannelSet::stereo(), true))
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)), params(apvts)
 {
-    auto* param = apvts.getParameter(gainParamID.getParamID());
-    gainParam = dynamic_cast<juce::AudioParameterFloat*>(param);
+
 }
 
 DelayAudioProcessor::~DelayAudioProcessor()
@@ -89,6 +88,19 @@ void DelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    params.prepareToPlay(sampleRate);
+    params.reset();
+
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = juce::uint32(samplesPerBlock);
+    spec.numChannels = 2;
+    delayLine.prepare(spec);
+
+    double numSamples = Parameters::maxDelayTime / 1000.0 * sampleRate;
+    int maxDelayInSamples = int(std::ceil(numSamples));
+    delayLine.setMaximumDelayInSamples(maxDelayInSamples);
+    delayLine.reset();
 }
 
 void DelayAudioProcessor::releaseResources()
@@ -127,15 +139,27 @@ void DelayAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, [[maybe
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    float gainInDecibels = gainParam->get();
-    float gain = juce::Decibels::decibelsToGain(gainInDecibels);
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    params.update();
+    delayLine.setDelay(48000.0f);
+
+    float* channelDataL = buffer.getWritePointer(0);
+    float* channelDataR = buffer.getWritePointer(1);
+
+    for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
     {
-        float* channelData = buffer.getWritePointer(channel);
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            channelData[sample] *= gain;
-        }
+        params.smoothen();
+
+        float dryL = channelDataL[sample];
+        float dryR = channelDataR[sample];
+
+        delayLine.pushSample(0, dryL);
+        delayLine.pushSample(1, dryR);
+
+        float wetL = delayLine.popSample(0);
+        float wetR = delayLine.popSample(1);
+
+        channelDataL[sample] = wetL * params.gain;
+        channelDataR[sample] = wetR * params.gain;
     }
 }
 
@@ -164,18 +188,6 @@ void DelayAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
     {
         apvts.replaceState(juce::ValueTree::fromXml(*xml));
     }
-}
-
-juce::AudioProcessorValueTreeState::ParameterLayout DelayAudioProcessor::createParameterLayout()
-{
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        gainParamID,
-        "Output Gain",
-        juce::NormalisableRange<float>{ -12.0f, 12.0f },
-        0.0f));
-
-    return layout;
 }
 
 //==============================================================================
