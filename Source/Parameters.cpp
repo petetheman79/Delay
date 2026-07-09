@@ -25,7 +25,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Parameters::createParameterL
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         delayTimeParamID,
         "Delay Time",
-        juce::NormalisableRange<float>{ minDelayTime, maxDelayTime },
+        juce::NormalisableRange<float>{ minDelayTime, maxDelayTime, 0.001f, 0.25f },
         100.0f));
 
     return layout;
