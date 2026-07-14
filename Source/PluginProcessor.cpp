@@ -162,8 +162,11 @@ void DelayAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, [[maybe
         float wetL = delayLine.popSample(0);
         float wetR = delayLine.popSample(1);
 
-        channelDataL[sample] = ((dryL / 2) + (wetL / 2)) * params.gain;
-        channelDataR[sample] = (dryR / 2 + wetR / 2) * params.gain;
+        float mixL = dryL + (wetL * params.mix);
+        float mixR = dryR + (wetR * params.mix);
+
+        channelDataL[sample] = mixL * params.gain;
+        channelDataR[sample] = mixR * params.gain;
 
         // mute output and view on an oscilloscope to see how the delay time changes smoothly.
         //channelDataL[sample] = params.delayTime / 5000.0f;
